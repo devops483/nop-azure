@@ -1,4 +1,6 @@
-name: Build and deploy nopCommerce No Source to Azure Web App - nop-com
+# Docs: https://github.com/Azure/webapps-deploy
+
+name: Deploy nopCommerce No Source Linux to Azure Web App - nop-com
 
 on:
   push:
@@ -7,55 +9,28 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
+
     permissions:
-      contents: read # Required for actions/checkout
+      id-token: write # Required for Azure OIDC login
+      contents: read  # Required for actions/checkout
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.x'
-
-      - name: Publish nopCommerce
-        run: |
-          dotnet publish ./src/Presentation/Nop.Web/Nop.Web.csproj -c Release -o ./publish
-
-      - name: Upload published app
-        uses: actions/upload-artifact@v4
-        with:
-          name: nop-publish
-          path: ./publish
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-
-    permissions:
-      id-token: write
-      contents: read
-
-    steps:
-      - name: Download published app
-        uses: actions/download-artifact@v4
-        with:
-          name: nop-publish
-          path: ./publish
-
-      - name: Azure login
+      # ⚠️ Make sure the NoSource Linux files are in a folder like /nop-ns-linux in your repo
+      - name: Azure Login
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_7A08F8C51242423497B9A39633E2BBBB }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_C8101D9BE01F44E48BFED0C6FA325AC8 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_D538389D339E4EEFA96567032E51A810 }}
 
-      - name: Deploy to Azure Web App
+      - name: Deploy nopCommerce No Source Linux to Azure
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'nop-com'
           slot-name: 'Production'
-          package: ./publish
+          package: './nop-ns-linux'
