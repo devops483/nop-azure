@@ -1,0 +1,36 @@
+# Docs: https://github.com/Azure/webapps-deploy
+
+name: Deploy nopCommerce No Source Linux to Azure Web App - nop-com
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write # Required for Azure OIDC login
+      contents: read  # Required for actions/checkout
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ⚠️ Make sure the NoSource Linux files are in a folder like /nop-ns-linux in your repo
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_7A08F8C51242423497B9A39633E2BBBB }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_C8101D9BE01F44E48BFED0C6FA325AC8 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_D538389D339E4EEFA96567032E51A810 }}
+
+      - name: Deploy nopCommerce No Source Linux to Azure
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'nop-com'
+          slot-name: 'Production'
+          package: './nop-ns-linux'
